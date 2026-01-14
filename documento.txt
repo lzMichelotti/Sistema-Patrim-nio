@@ -1,0 +1,118 @@
+# Sistema de Patrimônio - LAMIC
+
+Sistema web para gestão e controle de patrimônio e inventário, desenvolvido com **React** no frontend e **FastAPI (Python)** no backend. O sistema permite o cadastro, listagem, edição e remoção de ativos, além de funcionalidades avançadas como exportação de relatórios e um assistente de IA para cadastro rápido via chat.
+
+## 🚀 Funcionalidades
+
+- **Gestão de Ativos (CRUD):**
+  - Cadastro de patrimônios com Número, Nome, Sala, Quantidade e Valor.
+  - Edição e Exclusão de registros.
+  - Visualização em lista com busca e filtragem em tempo real.
+
+- **Relatórios:**
+  - 📊 **Exportação para Excel:** Gera uma planilha `.xlsx` com o inventário atual.
+  - 📄 **Exportação para PDF:** Gera um relatório formatado em PDF pronto para impressão.
+
+- **🤖 Assistente IA (ChatWidget):**
+  - Integração com **Google Gemini AI**.
+  - Permite cadastrar itens usando linguagem natural (ex: *"Cadastre 10 cadeiras na sala 302 no valor de 150 reais cada"*).
+  - A IA extrai os dados automaticamente e realiza o cadastro no banco.
+
+## 🛠 Tecnologias Utilizadas
+
+### Backend
+- **Python 3**
+- **FastAPI**: Framework web rápido e moderno.
+- **SQLAlchemy**: ORM para interação com banco de dados SQLite.
+- **Pydantic**: Validação de dados.
+- **Pandas / OpenPyXL**: Manipulação e exportação de dados para Excel.
+- **ReportLab**: Geração de PDFs.
+- **Google GenAI SDK**: Integração com a IA do Google Gemini.
+
+### Frontend
+- **React (Vite)**: Biblioteca para construção da interface de usuário.
+- **CSS3**: Estilização responsiva.
+
+## 📋 Pré-requisitos
+
+Certifique-se de ter instalado em sua máquina:
+- **Python 3.8+**
+- **Node.js** e **npm**
+- Uma chave de API do Google (para usar o chat com IA).
+
+## 🔧 Instalação e Execução
+
+### 1. Configuração do Backend
+
+1. Navegue até a pasta `backend`:
+   ```bash
+   cd backend
+   ```
+
+2. Crie um ambiente virtual (recomendado):
+   ```bash
+   python -m venv venv
+   # No Linux/Mac:
+   source venv/bin/activate
+   # No Windows:
+   venv\Scripts\activate
+   ```
+
+3. Instale as dependências:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Configure as variáveis de ambiente:
+   - Crie um arquivo `.env` na pasta `backend`.
+   - Adicione sua chave da API do Google:
+     ```env
+     GOOGLE_API_KEY="sua_chave_aqui"
+     ```
+
+5. Inicie o servidor:
+   ```bash
+   uvicorn main:app --reload
+   ```
+   *O backend rodará em: `http://127.0.0.1:8000`*
+
+### 2. Configuração do Frontend
+
+1. Abra um novo terminal e navegue até a pasta `frontend`:
+   ```bash
+   cd frontend
+   ```
+
+2. Instale as dependências do Node:
+   ```bash
+   npm install
+   ```
+
+3. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
+   *O frontend rodará em: `http://localhost:5173` (ou porta similar indicada no terminal).*
+
+## 📂 Estrutura do Projeto
+
+```
+/
+├── backend/
+│   ├── main.py           # Arquivo principal da API
+│   ├── models.py         # Modelos do banco de dados
+│   ├── database.py       # Conexão com SQLite
+│   └── patrimonio.db     # Banco de dados (gerado automaticamente)
+│
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx           # Componente principal
+│   │   └── components/
+│   │       └── ChatWidget.jsx # Componente do Chat com IA
+│   └── package.json
+└── docker-compose.yml    # (Opcional) Orquestração com Docker
+```
+
+## 🤝 Contribuição
+
+Sinta-se à vontade para abrir issues ou enviar pull requests para melhorias no projeto.
