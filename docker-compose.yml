@@ -1,0 +1,21 @@
+services:
+  # Serviço do Banco de Dados MySQL
+  db:
+    image: mysql:8.0
+    container_name: mysql_patrimonio
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: patrimonio_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # (Opcional) Podemos adicionar o backend e frontend aqui futuramente
+  # Mas por enquanto, vamos rodar apenas o banco via Docker e o resto no terminal
+
+volumes:
+  mysql_data:
