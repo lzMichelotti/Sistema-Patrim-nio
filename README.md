@@ -23,7 +23,7 @@ Sistema web para gestão e controle de patrimônio e inventário, desenvolvido c
 ### Backend
 - **Python 3**
 - **FastAPI**: Framework web rápido e moderno.
-- **SQLAlchemy**: ORM para interação com banco de dados SQLite.
+- **SQLAlchemy**: ORM para interação com banco de dados (SQLite por padrão, suporta MySQL).
 - **Pydantic**: Validação de dados.
 - **Pandas / OpenPyXL**: Manipulação e exportação de dados para Excel.
 - **ReportLab**: Geração de PDFs.
@@ -33,11 +33,14 @@ Sistema web para gestão e controle de patrimônio e inventário, desenvolvido c
 - **React (Vite)**: Biblioteca para construção da interface de usuário.
 - **CSS3**: Estilização responsiva.
 
+### Infraestrutura (Opcional)
+- **Docker & Docker Compose**: Para orquestração de contêineres (inclui configuração para MySQL).
+
 ## 📋 Pré-requisitos
 
 Certifique-se de ter instalado em sua máquina:
-- **Python 3.8+**
-- **Node.js** e **npm**
+- **Python 3.10+**
+- **Node.js** (v18+) e **npm**
 - Uma chave de API do Google (para usar o chat com IA).
 
 ## 🔧 Instalação e Execução
@@ -64,13 +67,19 @@ Certifique-se de ter instalado em sua máquina:
    ```
 
 4. Configure as variáveis de ambiente:
-   - Crie um arquivo `.env` na pasta `backend`.
-   - Adicione sua chave da API do Google:
+   - Crie um arquivo `.env` na pasta `backend` com o seguinte conteúdo:
      ```env
      GOOGLE_API_KEY="sua_chave_aqui"
+     # Opcional: Se for usar MySQL
+     # DATABASE_URL="mysql+pymysql://user:password@localhost/patrimonio_db"
      ```
 
-5. Inicie o servidor:
+5. (Opcional) Verifique os modelos Gemini disponíveis:
+   ```bash
+   python testes_modelos.py
+   ```
+
+6. Inicie o servidor:
    ```bash
    uvicorn main:app --reload
    ```
@@ -92,25 +101,36 @@ Certifique-se de ter instalado em sua máquina:
    ```bash
    npm run dev
    ```
-   *O frontend rodará em: `http://localhost:5173` (ou porta similar indicada no terminal).*
+   *O frontend rodará em: `http://localhost:5173`.*
+
+### 3. Execução com Docker (Opcional)
+
+Se preferir rodar o banco de dados MySQL via Docker:
+
+1. Na raiz do projeto, execute:
+   ```bash
+   docker-compose up -d
+   ```
+   *Isso subirá um contêiner MySQL na porta 3306.*
 
 ## 📂 Estrutura do Projeto
 
 ```
 /
 ├── backend/
-│   ├── main.py           # Arquivo principal da API
-│   ├── models.py         # Modelos do banco de dados
-│   ├── database.py       # Conexão com SQLite
-│   └── patrimonio.db     # Banco de dados (gerado automaticamente)
+│   ├── main.py           # Arquivo principal da API e Rotas
+│   ├── models.py         # Modelos do banco de dados (SQLAlchemy)
+│   ├── database.py       # Configuração da conexão com banco
+│   ├── testes_modelos.py # Script utilitário para listar modelos Gemini
+│   └── patrimonio.db     # Banco de dados SQLite (gerado automaticamente)
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx           # Componente principal
+│   │   ├── App.jsx            # Componente principal e lógica da UI
 │   │   └── components/
 │   │       └── ChatWidget.jsx # Componente do Chat com IA
 │   └── package.json
-└── docker-compose.yml    # (Opcional) Orquestração com Docker
+└── docker-compose.yml    # Configuração do Docker para MySQL
 ```
 
 ## 🤝 Contribuição
