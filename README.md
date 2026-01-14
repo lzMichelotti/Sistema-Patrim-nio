@@ -18,6 +18,23 @@ Sistema web para gestão e controle de patrimônio e inventário, desenvolvido c
   - Permite cadastrar itens usando linguagem natural (ex: *"Cadastre 10 cadeiras na sala 302 no valor de 150 reais cada"*).
   - A IA extrai os dados automaticamente e realiza o cadastro no banco.
 
+## 🔮 Planos Futuros
+
+Estamos trabalhando ativamente para evoluir o sistema. As próximas atualizações focarão em:
+
+- **Importação de Dados (Excel):**
+  - Funcionalidade de **upload** de planilhas (`.xlsx`, `.xls`).
+  - Processamento em massa para popular o banco de dados automaticamente a partir de inventários existentes.
+
+- **Melhorias na Inteligência Artificial (Gemini):**
+  - **Contexto Conversacional:** Permitir que a IA lembre do histórico recente da conversa para ajustes finos (ex: *"Mude a quantidade do último item para 5"*).
+  - **Consulta ao Banco (RAG/Text-to-SQL):** Capacidade da IA responder perguntas sobre o estado atual do inventário (ex: *"Quantas cadeiras temos na sala 101?"*).
+  - **Visão Computacional:** Implementar upload de imagens para que a IA identifique o objeto e preencha os dados automaticamente.
+
+- **Segurança e Analytics:**
+  - Implementação de sistema de **Login e Autenticação**.
+  - **Dashboards** com gráficos de distribuição de patrimônio por sala e valor total.
+
 ## 🛠 Tecnologias Utilizadas
 
 ### Backend
