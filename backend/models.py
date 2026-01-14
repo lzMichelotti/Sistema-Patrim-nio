@@ -5,8 +5,8 @@ class PatrimonioDB(Base):
     __tablename__ = "patrimonios"
     
     id = Column(Integer, primary_key=True, index=True)
-    numero_patrimonio = Column(String, unique=True, index=True) # O número da etiqueta
-    nome = Column(String)
-    sala = Column(String)
+    numero_patrimonio = Column(String(100), unique=True, index=True) # O número da etiqueta
+    nome = Column(String(255))
+    sala = Column(String(100))
     quantidade = Column(Integer)
     valor = Column(Float) # Valor em Reais

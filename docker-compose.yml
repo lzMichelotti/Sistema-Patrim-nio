@@ -14,8 +14,5 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
-  # (Opcional) Podemos adicionar o backend e frontend aqui futuramente
-  # Mas por enquanto, vamos rodar apenas o banco via Docker e o resto no terminal
-
 volumes:
   mysql_data:
