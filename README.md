@@ -88,12 +88,7 @@ Certifique-se de ter instalado em sua máquina:
      # DATABASE_URL="mysql+pymysql://user:password@localhost/patrimonio_db"
      ```
 
-5. (Opcional) Verifique os modelos Gemini disponíveis:
-   ```bash
-   python testes_modelos.py
-   ```
-
-6. Inicie o servidor:
+5. Inicie o servidor:
    ```bash
    uvicorn main:app --reload
    ```
@@ -117,15 +112,54 @@ Certifique-se de ter instalado em sua máquina:
    ```
    *O frontend rodará em: `http://localhost:5173`.*
 
-### 3. Execução com Docker (Opcional)
+### 3. Execução com Docker (Opcional - Desenvolvimento)
 
-Se preferir rodar o banco de dados MySQL via Docker:
+Se preferir rodar apenas o MySQL via Docker em desenvolvimento:
 
 1. Na raiz do projeto, execute:
    ```bash
-   docker-compose up -d
+   docker-compose up -d db
    ```
    *Isso subirá um contêiner MySQL na porta 3306.*
+
+### 4. Execução com Docker Compose Completo (Produção)
+
+Para rodar a aplicação inteira (MySQL, Backend, Frontend, Nginx) em containers:
+
+1. Configure a chave de API:
+   ```bash
+   cp .env.docker .env
+   # Edite .env e insira sua GOOGLE_API_KEY
+   nano .env  # ou abra com seu editor favorito
+   ```
+
+2. Inicie todos os serviços:
+   ```bash
+   docker compose up -d
+   ```
+   Isso criará:
+   - **MySQL** na porta `3306` (interno) com banco `patrimonio_db` pré-criado
+   - **Backend FastAPI** na porta `8000` (acessível via Nginx)
+   - **Frontend React (Nginx)** na porta `80`
+   - Rede interna `app_network` conectando os serviços
+
+3. Acesse a aplicação:
+   - **Aplicação**: `http://localhost`
+   - **API Docs**: `http://localhost:8000/docs` (opcional)
+
+4. Monitore os logs:
+   ```bash
+   docker compose logs -f backend
+   docker compose logs -f frontend
+   docker compose logs -f db
+   ```
+
+5. Para parar:
+   ```bash
+   docker compose down
+   ```
+
+**Nota:** O banco de dados persiste em `mysql_data` volume. Para resetar, use `docker compose down -v`.
 
 ## 📂 Estrutura do Projeto
 
@@ -135,7 +169,6 @@ Se preferir rodar o banco de dados MySQL via Docker:
 │   ├── main.py           # Arquivo principal da API e Rotas
 │   ├── models.py         # Modelos do banco de dados (SQLAlchemy)
 │   ├── database.py       # Configuração da conexão com banco
-│   ├── testes_modelos.py # Script utilitário para listar modelos Gemini
 │   └── patrimonio.db     # Banco de dados SQLite (gerado automaticamente)
 │
 ├── frontend/

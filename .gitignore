@@ -1,0 +1,30 @@
+# Backend Python
+backend/.env
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Local DB files
+backend/*.db
+backend/testes_modelos.py
+
+# Frontend Node/Vite
+frontend/.env
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# Logs and temp
+*.log
+.cache/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS files
+.DS_Store
+Thumbs.db

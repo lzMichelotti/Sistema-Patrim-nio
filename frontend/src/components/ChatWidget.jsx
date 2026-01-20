@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './ChatWidget.css';
 
 const ChatWidget = ({ onNewItem }) => {
+  const API_URL = import.meta.env.VITE_API_URL || '/api';
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([
@@ -20,7 +21,7 @@ const handleSend = async () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/chat', {
+      const response = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
