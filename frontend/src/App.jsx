@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import './App.css';
-import ChatWidget from './components/ChatWidget';
 
 function App() {
   const [patrimonios, setPatrimonios] = useState([]);
@@ -12,29 +11,34 @@ function App() {
     numero_patrimonio_lamic: '',
     numero_patrimonio_ufsm: '',
     nome: '',
-    sala: '',
+    sala_id: '',
     quantidade: 1,
     valor_total: 0
   });
 
   const API_URL = import.meta.env.VITE_API_URL || '/api';
 
+  const carregarSalas = useCallback(() => {
+    fetch(`${API_URL}/salas/`)
+      .then(response => response.json())
+      .then((data) => {
+        const payload = Array.isArray(data) ? data : data?.salas;
+        setSalas(Array.isArray(payload) ? payload : []);
+      })
+      .catch(() => setSalas([]));
+  }, [API_URL]);
+
+  const listarPatrimonios = useCallback(() => {
+    fetch(`${API_URL}/patrimonios/`)
+      .then(response => response.json())
+      .then((data) => setPatrimonios(Array.isArray(data) ? data : []))
+      .catch(() => setPatrimonios([]));
+  }, [API_URL]);
+
   useEffect(() => {
     listarPatrimonios();
     carregarSalas();
-  }, []);
-
-  const carregarSalas = () => {
-    fetch(`${API_URL}/salas/`)
-      .then(response => response.json())
-      .then(data => setSalas(data.salas));
-  };
-
-  const listarPatrimonios = () => {
-    fetch(`${API_URL}/patrimonios/`)
-      .then(response => response.json())
-      .then(data => setPatrimonios(data));
-  };
+  }, [listarPatrimonios, carregarSalas]);
 
   const formatCurrencyBR = (value) => {
     const numeric = Number(value) || 0;
@@ -44,6 +48,25 @@ function App() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
+  };
+
+  const getSalaNome = (sala) => {
+    if (typeof sala === 'string') return sala;
+    if (sala && typeof sala === 'object') return sala.nome || '';
+    return '';
+  };
+
+  const getSalaId = (sala) => {
+    if (typeof sala === 'number') return sala;
+    if (typeof sala === 'string' && sala !== '') return Number(sala);
+    if (sala && typeof sala === 'object' && sala.id != null) return Number(sala.id);
+    return null;
+  };
+
+  const getSalaKey = (sala, index) => {
+    if (typeof sala === 'string') return sala;
+    if (sala && typeof sala === 'object') return sala.id ?? sala.nome ?? `sala-${index}`;
+    return `sala-${index}`;
   };
 
   const handleValorChange = (e) => {
@@ -57,52 +80,74 @@ function App() {
   };
 
   const prepararEdicao = (item) => {
+    const salaId = item.sala_id ?? getSalaId(item.sala) ?? '';
     setForm({
       numero_patrimonio_lamic: item.numero_patrimonio_lamic || '',
       numero_patrimonio_ufsm: item.numero_patrimonio_ufsm || '',
       nome: item.nome,
-      sala: item.sala,
+      sala_id: String(salaId),
       quantidade: item.quantidade,
       valor_total: item.valor_total
     });
     setIdEdicao(item.id);
   };
 
+  const montarPayload = () => ({
+    numero_patrimonio_lamic: form.numero_patrimonio_lamic,
+    numero_patrimonio_ufsm: form.numero_patrimonio_ufsm || null,
+    nome: form.nome,
+    quantidade: Number(form.quantidade) || 1,
+    valor_total: Number(form.valor_total) || 0,
+    sala_id: Number(form.sala_id),
+  });
+
+  const resetarForm = () => {
+    setForm({
+      numero_patrimonio_lamic: '',
+      numero_patrimonio_ufsm: '',
+      nome: '',
+      sala_id: '',
+      quantidade: 1,
+      valor_total: 0,
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!form.sala_id) {
+      alert('Selecione uma sala.');
+      return;
+    }
+
+    const payload = montarPayload();
+
     if (idEdicao) {
-      const salaPath = encodeURIComponent(form.sala);
-      fetch(`${API_URL}/patrimonios/${salaPath}/${idEdicao}`, {
+      fetch(`${API_URL}/patrimonios/${idEdicao}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       }).then(() => {
         listarPatrimonios();
         setIdEdicao(null);
-        setForm({ numero_patrimonio_lamic: '', numero_patrimonio_ufsm: '', nome: '', sala: '', quantidade: 1, valor_total: 0 });
+        resetarForm();
       });
     } else {
       fetch(`${API_URL}/patrimonios/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       }).then(() => {
         listarPatrimonios();
-        setForm({ numero_patrimonio_lamic: '', numero_patrimonio_ufsm: '', nome: '', sala: '', quantidade: 1, valor_total: 0 });
+        resetarForm();
       });
     }
   };
 
-  const deletarItem = (sala, id) => {
+  const deletarItem = (id) => {
     if (confirm("Tem certeza?")) {
-      const salaPath = encodeURIComponent(sala);
-      fetch(`${API_URL}/patrimonios/${salaPath}/${id}`, { method: 'DELETE' })
+      fetch(`${API_URL}/patrimonios/${id}`, { method: 'DELETE' })
         .then(() => listarPatrimonios());
     }
-  };
-
-  const exportarExcel = () => {
-    window.open(`${API_URL}/exportar_excel`, '_blank');
   };
 
   const exportarPDF = () => {
@@ -110,25 +155,41 @@ function App() {
   };
 
   // Filtra a lista original baseado no que foi digitado
-  const patrimoniosFiltrados = patrimonios.filter((item) =>
-    (item.nome || '').toLowerCase().includes(busca.toLowerCase()) ||
-    (item.numero_patrimonio_lamic || '').includes(busca) ||
-    (item.sala || '').toLowerCase().includes(busca.toLowerCase())
-  );
+  const listaPatrimonios = Array.isArray(patrimonios) ? patrimonios : [];
+  const listaSalas = Array.isArray(salas) ? salas : [];
+  const normalizarTexto = (texto) =>
+    (texto || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
 
-  // --- CORREÇÃO 1: NOVA FUNÇÃO SIMPLES ---
-  // Essa função apenas recebe o dado que JÁ FOI SALVO pelo Python e atualiza a tela
-  const handleNovoItemIA = (itemJaSalvo) => {
-    // Opção A: Adiciona direto no estado (mais rápido, "instantâneo")
-    setPatrimonios((prev) => [...prev, itemJaSalvo]);
-    
-    // Opção B: Se preferir garantir 100%, pode chamar listarPatrimonios() aqui também
-    // listarPatrimonios(); 
+  const salasOcultasNoSelect = new Set(['laboratorio principal']);
+  const listaSalasParaSelect = listaSalas.filter((sala) => {
+    const nomeSala = getSalaNome(sala);
+    return !salasOcultasNoSelect.has(normalizarTexto(nomeSala));
+  });
+
+  const getSalaNomeDoItem = (item) => {
+    const nomeDireto = getSalaNome(item.sala);
+    if (nomeDireto) return nomeDireto;
+
+    const salaId = item.sala_id ?? getSalaId(item.sala);
+    const salaEncontrada = listaSalas.find((sala) => Number(getSalaId(sala)) === Number(salaId));
+    return getSalaNome(salaEncontrada) || '—';
   };
 
+  const patrimoniosFiltrados = listaPatrimonios.filter((item) => {
+    const salaNome = getSalaNomeDoItem(item);
+    return (
+      (item.nome || '').toLowerCase().includes(busca.toLowerCase()) ||
+      (item.numero_patrimonio_lamic || '').includes(busca) ||
+      salaNome.toLowerCase().includes(busca.toLowerCase())
+    );
+  });
+
   return (
-    <>
-      <div className="app-container">
+    <div className="app-container">
         <header className="hero-header">
           <div className="hero-content">
             <img
@@ -179,18 +240,24 @@ function App() {
               </div>
               <div className="input-grid">
                 <select
-                  name="sala"
-                  value={form.sala}
+                  name="sala_id"
+                  value={form.sala_id}
                   onChange={handleChange}
                   required
                   className="input"
                 >
                   <option value="">Selecione uma sala</option>
-                  {salas.map((sala) => (
-                    <option key={sala} value={sala}>
-                      {sala}
-                    </option>
-                  ))}
+                  {listaSalasParaSelect.map((sala, index) => {
+                    const salaNome = getSalaNome(sala);
+                    const salaId = getSalaId(sala);
+                    if (!salaNome) return null;
+
+                    return (
+                      <option key={getSalaKey(sala, index)} value={String(salaId ?? '')}>
+                        {salaNome}
+                      </option>
+                    );
+                  })}
                 </select>
                 <input
                   type="number"
@@ -214,12 +281,12 @@ function App() {
                   type="submit"
                   className={`btn ${idEdicao ? 'btn-warning' : 'btn-success'}`}
                 >
-                  {idEdicao ? '💾 Salvar Alterações' : '✅ Cadastrar'}
+                  {idEdicao ? '💾 Salvar Alterações' : 'Cadastrar'}
                 </button>
                 {idEdicao && (
                   <button
                     type="button"
-                    onClick={() => { setIdEdicao(null); setForm({ numero_patrimonio_lamic: '', numero_patrimonio_ufsm: '', nome: '', sala: '', quantidade: 1, valor_total: 0 }); }}
+                    onClick={() => { setIdEdicao(null); resetarForm(); }}
                     className="btn btn-secondary"
                   >
                     ❌ Cancelar
@@ -239,9 +306,6 @@ function App() {
                 onChange={(e) => setBusca(e.target.value)}
                 className="search-input"
               />
-              <button onClick={exportarExcel} className="btn btn-success btn-small">
-                📊 Excel
-              </button>
               <button onClick={exportarPDF} className="btn btn-danger btn-small">
                 📄 PDF
               </button>
@@ -256,19 +320,19 @@ function App() {
                     <span style={{color: 'var(--primary-color)', fontWeight: '700'}}>#{item.numero_patrimonio_lamic}</span> - {item.nome}
                   </p>
                   <div className="item-details">
-                    <span><strong>Sala:</strong> {item.sala}</span>
+                    <span><strong>Sala:</strong> {getSalaNomeDoItem(item)}</span>
                     <span><strong>Quantidade:</strong> {item.quantidade}</span>
                     <span><strong>UFSM:</strong> {item.numero_patrimonio_ufsm || '—'}</span>
                   </div>
                 </div>
                 <div className="item-value">
-                  R$ {parseFloat(item.valor_total).toFixed(2)}
+                  {formatCurrencyBR(item.valor_total)}
                 </div>
                 <div className="item-actions">
                   <button onClick={() => prepararEdicao(item)} className="btn btn-primary btn-small">
                     ✏️
                   </button>
-                  <button onClick={() => deletarItem(item.sala, item.id)} className="btn btn-danger btn-small">
+                  <button onClick={() => deletarItem(item.id)} className="btn btn-danger btn-small">
                     🗑️
                   </button>
                 </div>
@@ -288,8 +352,6 @@ function App() {
         </footer>
       </div>
 
-      <ChatWidget onNewItem={handleNovoItemIA} />
-    </>
   );
 }
 

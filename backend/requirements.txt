@@ -1,12 +1,7 @@
 fastapi
 uvicorn[standard]
 sqlalchemy
-pandas
-openpyxl
 reportlab
-google-genai
 python-multipart
 pydantic
 python-dotenv
-pymysql
-cryptography

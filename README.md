@@ -1,185 +1,59 @@
-# Sistema de Patrimônio - LAMIC
+# Sistema de Patrimonio
 
-Sistema web para gestão e controle de patrimônio e inventário, desenvolvido com **React** no frontend e **FastAPI (Python)** no backend. O sistema permite o cadastro, listagem, edição e remoção de ativos, além de funcionalidades avançadas como exportação de relatórios e um assistente de IA para cadastro rápido via chat.
+Sistema simples para controle de patrimonio com:
 
-## 🚀 Funcionalidades
+- Backend em FastAPI
+- Frontend em React
+- Banco SQLite
 
-- **Gestão de Ativos (CRUD):**
-  - Cadastro de patrimônios com Número, Nome, Sala, Quantidade e Valor.
-  - Edição e Exclusão de registros.
-  - Visualização em lista com busca e filtragem em tempo real.
+A opção de ser SQLite foi porque o sistema tem pouco acesso e poucas alteracoes, e queriamos a opcao mais leve possivel.
 
-- **Relatórios:**
-  - 📊 **Exportação para Excel:** Gera uma planilha `.xlsx` com o inventário atual.
-  - 📄 **Exportação para PDF:** Gera um relatório formatado em PDF pronto para impressão.
+## Tecnologias usadas
 
-- **🤖 Assistente IA (ChatWidget):**
-  - Integração com **Google Gemini AI**.
-  - Permite cadastrar itens usando linguagem natural (ex: *"Cadastre 10 cadeiras na sala 302 no valor de 150 reais cada"*).
-  - A IA extrai os dados automaticamente e realiza o cadastro no banco.
+- FastAPI: API REST do backend.
+- SQLAlchemy: camada de acesso ao banco.
+- SQLite: banco de dados local e em producao (mais leve).
+- React: interface web.
+- Vite: build e servidor de desenvolvimento do frontend.
+- Docker e Docker Compose: execucao e deploy dos servicos.
+- Nginx: entrega do frontend e proxy para o backend.
 
-## 🔮 Planos Futuros
 
-As próximas atualizações focarão em:
+## Rodar com Docker
 
-- **Importação de Dados (Excel):**
-  - Realizar o upload de planilhas (Excel) para popular e atualizar automaticamente o banco de dados com os itens listados.
+1. Copie `.env.docker` para `.env` na raiz.
+2. Suba os containers:
 
-- **Melhorias na Inteligência Artificial (Gemini):**
-  - **Contexto Conversacional:** Permitir que a IA lembre do histórico recente da conversa para ajustes finos (ex: *"Mude a quantidade do último item para 5"*).
-  - **Consulta ao Banco (RAG/Text-to-SQL):** Capacidade da IA responder perguntas sobre o estado atual do inventário (ex: *"Quantas cadeiras temos na sala 101?"*).
-
-- **Analytics:**
-  - **Dashboards** com gráficos de distribuição de patrimônio por sala e valor total.
-
-## 🛠 Tecnologias Utilizadas
-
-### Backend
-- **Python 3**
-- **FastAPI**: Framework web rápido e moderno.
-- **SQLAlchemy**: ORM para interação com banco de dados (SQLite por padrão, suporta MySQL).
-- **Pydantic**: Validação de dados.
-- **Pandas / OpenPyXL**: Manipulação e exportação de dados para Excel.
-- **ReportLab**: Geração de PDFs.
-- **Google GenAI SDK**: Integração com a IA do Google Gemini.
-
-### Frontend
-- **React (Vite)**: Biblioteca para construção da interface de usuário.
-- **CSS3**: Estilização responsiva.
-
-### Infraestrutura (Opcional)
-- **Docker & Docker Compose**: Para orquestração de contêineres (inclui configuração para MySQL).
-
-## 📋 Pré-requisitos
-
-Certifique-se de ter instalado em sua máquina:
-- **Python 3.10+**
-- **Node.js** (v18+) e **npm**
-- Uma chave de API do Google (para usar o chat com IA).
-
-## 🔧 Instalação e Execução
-
-### 1. Configuração do Backend
-
-1. Navegue até a pasta `backend`:
-   ```bash
-   cd backend
-   ```
-
-2. Crie um ambiente virtual (recomendado):
-   ```bash
-   python -m venv venv
-   # No Linux/Mac:
-   source venv/bin/activate
-   # No Windows:
-   venv\Scripts\activate
-   ```
-
-3. Instale as dependências:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Configure as variáveis de ambiente:
-   - Crie um arquivo `.env` na pasta `backend` com o seguinte conteúdo:
-     ```env
-     GOOGLE_API_KEY="sua_chave_aqui"
-     # Opcional: Se for usar MySQL
-     # DATABASE_URL="mysql+pymysql://user:password@localhost/patrimonio_db"
-     ```
-
-5. Inicie o servidor:
-   ```bash
-   uvicorn main:app --reload
-   ```
-   *O backend rodará em: `http://127.0.0.1:8000`*
-
-### 2. Configuração do Frontend
-
-1. Abra um novo terminal e navegue até a pasta `frontend`:
-   ```bash
-   cd frontend
-   ```
-
-2. Instale as dependências do Node:
-   ```bash
-   npm install
-   ```
-
-3. Inicie o servidor de desenvolvimento:
-   ```bash
-   npm run dev
-   ```
-   *O frontend rodará em: `http://localhost:5173`.*
-
-### 3. Execução com Docker (Opcional - Desenvolvimento)
-
-Se preferir rodar apenas o MySQL via Docker em desenvolvimento:
-
-1. Na raiz do projeto, execute:
-   ```bash
-   docker-compose up -d db
-   ```
-   *Isso subirá um contêiner MySQL na porta 3306.*
-
-### 4. Execução com Docker Compose Completo (Produção)
-
-Para rodar a aplicação inteira (MySQL, Backend, Frontend, Nginx) em containers:
-
-1. Configure a chave de API:
-   ```bash
-   cp .env.docker .env
-   # Edite .env e insira sua GOOGLE_API_KEY
-   nano .env  # ou abra com seu editor favorito
-   ```
-
-2. Inicie todos os serviços:
-   ```bash
-   docker compose up -d
-   ```
-   Isso criará:
-   - **MySQL** na porta `3306` (interno) com banco `patrimonio_db` pré-criado
-   - **Backend FastAPI** na porta `8000` (acessível via Nginx)
-   - **Frontend React (Nginx)** na porta `80`
-   - Rede interna `app_network` conectando os serviços
-
-3. Acesse a aplicação:
-   - **Aplicação**: `http://localhost`
-   - **API Docs**: `http://localhost:8000/docs` (opcional)
-
-4. Monitore os logs:
-   ```bash
-   docker compose logs -f backend
-   docker compose logs -f frontend
-   docker compose logs -f db
-   ```
-
-5. Para parar:
-   ```bash
-   docker compose down
-   ```
-
-**Nota:** O banco de dados persiste em `mysql_data` volume. Para resetar, use `docker compose down -v`.
-
-## 📂 Estrutura do Projeto
-
-```
-/
-├── backend/
-│   ├── main.py           # Arquivo principal da API e Rotas
-│   ├── models.py         # Modelos do banco de dados (SQLAlchemy)
-│   ├── database.py       # Configuração da conexão com banco
-│   └── patrimonio.db     # Banco de dados SQLite (gerado automaticamente)
-│
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx            # Componente principal e lógica da UI
-│   │   └── components/
-│   │       └── ChatWidget.jsx # Componente do Chat com IA
-│   └── package.json
-└── docker-compose.yml    # Configuração do Docker para MySQL
+```bash
+docker compose up -d --build
 ```
 
-## 🤝 Contribuição
+3. (Opcional, primeira vez) Popular salas:
 
-Sinta-se à vontade para abrir issues ou enviar pull requests para melhorias no projeto.
+```bash
+docker compose exec backend python seed.py
+```
+
+## Acessos
+
+- Frontend: `http://localhost:8090`
+- Backend: `http://localhost:8010`
+- Docs da API: `http://localhost:8010/docs`
+
+## Rodar local (sem Docker)
+
+Backend:
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
