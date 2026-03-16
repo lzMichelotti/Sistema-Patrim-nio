@@ -14,7 +14,7 @@ class SalaResponse(BaseModel):
 
 # Patrimônios
 class PatrimonioCreate(BaseModel):
-    numero_patrimonio_lamic: str
+    numero_patrimonio_lamic: Optional[str] = None
     numero_patrimonio_ufsm: Optional[str] = None
     nome: str
     quantidade: int = 1

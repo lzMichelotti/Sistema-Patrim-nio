@@ -92,9 +92,14 @@ function App() {
     setIdEdicao(item.id);
   };
 
+  const valorTextoOuNull = (valor) => {
+    const texto = String(valor ?? '').trim();
+    return texto === '' ? null : texto;
+  };
+
   const montarPayload = () => ({
-    numero_patrimonio_lamic: form.numero_patrimonio_lamic,
-    numero_patrimonio_ufsm: form.numero_patrimonio_ufsm || null,
+    numero_patrimonio_lamic: valorTextoOuNull(form.numero_patrimonio_lamic),
+    numero_patrimonio_ufsm: valorTextoOuNull(form.numero_patrimonio_ufsm),
     nome: form.nome,
     quantidade: Number(form.quantidade) || 1,
     valor_total: Number(form.valor_total) || 0,
@@ -216,10 +221,9 @@ function App() {
               <div className="input-grid">
                 <input
                   name="numero_patrimonio_lamic"
-                  placeholder="Nº Patrimônio LAMIC"
+                  placeholder="Nº Patrimônio LAMIC (Opcional)"
                   value={form.numero_patrimonio_lamic}
                   onChange={handleChange}
-                  required
                   className="input"
                 />
                 <input
@@ -317,7 +321,7 @@ function App() {
               <li key={item.id} className="list-item">
                 <div className="item-info">
                   <p className="item-name">
-                    <span style={{color: 'var(--primary-color)', fontWeight: '700'}}>#{item.numero_patrimonio_lamic}</span> - {item.nome}
+                    <span style={{color: 'var(--primary-color)', fontWeight: '700'}}>{item.numero_patrimonio_lamic ? `#${item.numero_patrimonio_lamic}` : 'Sem LAMIC'}</span> - {item.nome}
                   </p>
                   <div className="item-details">
                     <span><strong>Sala:</strong> {getSalaNomeDoItem(item)}</span>

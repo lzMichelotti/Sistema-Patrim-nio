@@ -21,7 +21,7 @@ class PatrimonioDB(Base):
     sala_id = Column(Integer, ForeignKey("salas.id"), nullable=False)
     
     # Os dados específicos do ativo que você listou
-    numero_patrimonio_lamic = Column(String(100), unique=True, index=True, nullable=False)
+    numero_patrimonio_lamic = Column(String(100), unique=True, index=True, nullable=True)
     numero_patrimonio_ufsm = Column(String(100), nullable=True)
     nome = Column(String(255), nullable=False)
     quantidade = Column(Integer, default=1)
