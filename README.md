@@ -28,6 +28,18 @@ A opção de ser SQLite foi porque o sistema tem pouco acesso e poucas alteracoe
 docker compose up -d --build
 ```
 
+3. (Opcional, quando precisar repovoar o banco) popular salas:
+
+```bash
+docker compose exec backend python seed.py
+```
+
+4. (Opcional) popular salas + itens padrao em todas as salas:
+
+```bash
+docker compose exec backend python seed.py --com-itens
+```
+
 ## Acessos
 
 - Frontend: `http://localhost:8090`
@@ -42,6 +54,18 @@ Backend:
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
+```
+
+Popular salas localmente:
+
+```bash
+python seed.py
+```
+
+Popular salas + itens padrao localmente:
+
+```bash
+python seed.py --com-itens
 ```
 
 Frontend:
