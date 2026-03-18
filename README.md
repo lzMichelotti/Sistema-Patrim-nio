@@ -6,7 +6,7 @@ Sistema simples para controle de patrimonio com:
 - Frontend em React
 - Banco SQLite
 
-A opção de ser SQLite foi porque o sistema tem pouco acesso e poucas alteracoes, e queriamos a opcao mais leve possivel.
+A opção de ser SQLite foi porque o sistema tem pouco acesso e poucas alteracoes, e queriamos a opção mais leve possivel.
 
 ## Tecnologias usadas
 
@@ -26,12 +26,6 @@ A opção de ser SQLite foi porque o sistema tem pouco acesso e poucas alteracoe
 
 ```bash
 docker compose up -d --build
-```
-
-3. (Opcional, primeira vez) Popular salas:
-
-```bash
-docker compose exec backend python seed.py
 ```
 
 ## Acessos

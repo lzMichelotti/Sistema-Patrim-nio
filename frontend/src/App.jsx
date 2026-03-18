@@ -6,6 +6,10 @@ function App() {
   const [salas, setSalas] = useState([]);
   const [idEdicao, setIdEdicao] = useState(null);
   const [busca, setBusca] = useState('');
+  const [mostrarEstatisticas, setMostrarEstatisticas] = useState(false);
+  const [graficoKey, setGraficoKey] = useState(Date.now());
+  const [erroGrafico, setErroGrafico] = useState(false);
+  const [zoomGrafico, setZoomGrafico] = useState(1);
   
   const [form, setForm] = useState({
     numero_patrimonio_lamic: '',
@@ -159,6 +163,57 @@ function App() {
     window.open(`${API_URL}/exportar_pdf`, '_blank');
   };
 
+  const abrirEstatisticas = () => {
+    if (!mostrarEstatisticas) {
+      setGraficoKey(Date.now());
+      setErroGrafico(false);
+      setZoomGrafico(1);
+    }
+    setMostrarEstatisticas((prev) => !prev);
+  };
+
+  const fecharEstatisticas = () => {
+    setMostrarEstatisticas(false);
+  };
+
+  const atualizarGrafico = () => {
+    setGraficoKey(Date.now());
+    setErroGrafico(false);
+  };
+
+  const aumentarZoom = () => {
+    setZoomGrafico((zoomAtual) => Math.min(2.2, Number((zoomAtual + 0.15).toFixed(2))));
+  };
+
+  const diminuirZoom = () => {
+    setZoomGrafico((zoomAtual) => Math.max(0.7, Number((zoomAtual - 0.15).toFixed(2))));
+  };
+
+  const resetarZoom = () => {
+    setZoomGrafico(1);
+  };
+
+  useEffect(() => {
+    if (!mostrarEstatisticas) {
+      return undefined;
+    }
+
+    const overflowOriginal = document.body.style.overflow;
+    const handleEsc = (event) => {
+      if (event.key === 'Escape') {
+        fecharEstatisticas();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleEsc);
+
+    return () => {
+      document.body.style.overflow = overflowOriginal;
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [mostrarEstatisticas]);
+
   // Filtra a lista original baseado no que foi digitado
   const listaPatrimonios = Array.isArray(patrimonios) ? patrimonios : [];
   const listaSalas = Array.isArray(salas) ? salas : [];
@@ -192,6 +247,8 @@ function App() {
       salaNome.toLowerCase().includes(busca.toLowerCase())
     );
   });
+
+  const graficoSrc = `${API_URL}/graficos/valor-por-sala?t=${graficoKey}`;
 
   return (
     <div className="app-container">
@@ -313,6 +370,9 @@ function App() {
               <button onClick={exportarPDF} className="btn btn-danger btn-small">
                 📄 PDF
               </button>
+              <button onClick={abrirEstatisticas} className="btn btn-primary btn-small">
+                {mostrarEstatisticas ? '📉 Fechar Estatísticas' : '📊 Estatísticas'}
+              </button>
             </div>
           </div>
 
@@ -350,6 +410,54 @@ function App() {
             )}
           </ul>
         </div>
+
+        {mostrarEstatisticas && (
+          <div className="stats-modal-overlay" onClick={fecharEstatisticas}>
+            <section
+              className="stats-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="stats-modal-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="stats-modal-header">
+                <h4 id="stats-modal-title">📈 Valor Total de Patrimônio por Sala</h4>
+                <div className="stats-modal-actions">
+                  <button onClick={atualizarGrafico} className="btn btn-secondary btn-small" type="button">
+                    🔄 Atualizar
+                  </button>
+                  <button onClick={diminuirZoom} className="btn btn-secondary btn-small" type="button" aria-label="Diminuir zoom">
+                    ➖
+                  </button>
+                  <button onClick={resetarZoom} className="btn btn-secondary btn-small" type="button" aria-label="Resetar zoom">
+                    100%
+                  </button>
+                  <button onClick={aumentarZoom} className="btn btn-secondary btn-small" type="button" aria-label="Aumentar zoom">
+                    ➕
+                  </button>
+                  <span className="zoom-label">Zoom: {Math.round(zoomGrafico * 100)}%</span>
+                  <button onClick={fecharEstatisticas} className="btn btn-primary btn-small" type="button">
+                    ✖ Fechar
+                  </button>
+                </div>
+              </div>
+
+              {erroGrafico ? (
+                <p className="stats-error">Não foi possível carregar o gráfico agora.</p>
+              ) : (
+                <div className="stats-image-viewport">
+                  <img
+                    src={graficoSrc}
+                    alt="Gráfico de valor total por sala"
+                    className="stats-image"
+                    style={{ width: `${zoomGrafico * 100}%`, maxWidth: 'none' }}
+                    onError={() => setErroGrafico(true)}
+                  />
+                </div>
+              )}
+            </section>
+          </div>
+        )}
         
         <footer className="footer">
           <p>Desenvolvido por Lorenzo Michelotti Palma</p>

@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Response
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+import graphic
 import models
 import schemas
 from database import engine, get_db
@@ -11,6 +12,11 @@ from pdf_report import gerar_pdf_patrimonio
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API de Patrimônio")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return Response(status_code=204)
 
 
 #Salas
@@ -31,7 +37,7 @@ def listar_salas(db: Session = Depends(get_db)):
 
 @app.post("/patrimonios/", response_model=schemas.PatrimonioResponse)
 def criar_patrimonio(patrimonio: schemas.PatrimonioCreate, db: Session = Depends(get_db)):
-    # Verificar se a sala informada realmente existe
+    
     sala_existe = db.query(models.SalaDB).filter(models.SalaDB.id == patrimonio.sala_id).first()
     if not sala_existe:
         raise HTTPException(status_code=404, detail="Sala não encontrada")
@@ -92,3 +98,18 @@ def exportar_pdf(db: Session = Depends(get_db)):
         media_type="application/pdf",
         headers={"Content-Disposition": "attachment; filename=relatorio_lamic.pdf"},
     )
+
+# ==========================================
+# ROTAS DE DASHBOARD E GRÁFICOS
+# ==========================================
+
+@app.get("/graficos/valor-por-sala")
+def obter_grafico_valor():
+    # Chama a função criada em  graphic.py
+    buffer_imagem = graphic.gerar_grafico_valor_por_sala()
+    
+    if not buffer_imagem:
+        raise HTTPException(status_code=404, detail="Não há dados suficientes para gerar o gráfico.")
+    
+    # Retorna o conteúdo da memória avisando o navegador que é uma imagem PNG
+    return Response(content=buffer_imagem.getvalue(), media_type="image/png")
