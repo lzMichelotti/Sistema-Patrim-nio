@@ -5,3 +5,4 @@ reportlab
 python-multipart
 pydantic
 python-dotenv
+matplotlib
