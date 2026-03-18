@@ -6,3 +6,6 @@ python-multipart
 pydantic
 python-dotenv
 matplotlib
+pandas
+seaborn
+fpdf2
