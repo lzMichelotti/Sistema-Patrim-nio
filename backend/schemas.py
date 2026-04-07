@@ -20,9 +20,25 @@ class PatrimonioCreate(BaseModel):
     quantidade: int = 1
     valor_total: Optional[float] = None
     sala_id: int 
+    ativo: bool = True
+
+class ComponenteCreate(BaseModel):
+    nome: str
+    numero_serie: Optional[str] = None
+    quantidade: int = 1
+    valor: Optional[float] = None
+    observacao: Optional[str] = None
+
+class ComponenteResponse(ComponenteCreate):
+    id: int
+    patrimonio_id: int
+
+    class Config:
+        from_attributes = True
 
 class PatrimonioResponse(PatrimonioCreate):
     id: int
+    componentes: list[ComponenteResponse] = []
 
     class Config:
         from_attributes = True

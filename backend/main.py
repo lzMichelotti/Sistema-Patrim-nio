@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Response
 from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 import graphic
 import models
@@ -51,7 +51,11 @@ def criar_patrimonio(patrimonio: schemas.PatrimonioCreate, db: Session = Depends
 
 @app.get("/patrimonios/", response_model=list[schemas.PatrimonioResponse])
 def listar_patrimonios(db: Session = Depends(get_db)):
-    return db.query(models.PatrimonioDB).all()
+    return (
+        db.query(models.PatrimonioDB)
+        .options(selectinload(models.PatrimonioDB.componentes))
+        .all()
+    )
 
 
 #(PUT/DELETE)
@@ -88,9 +92,47 @@ def deletar_patrimonio(patrimonio_id: int, db: Session = Depends(get_db)):
     return {"mensagem": f"Patrimônio ID {patrimonio_id} deletado com sucesso!"}
 
 
+# Componentes
+
+@app.post("/patrimonios/{patrimonio_id}/componentes/", response_model=schemas.ComponenteResponse)
+def criar_componente(patrimonio_id: int, componente: schemas.ComponenteCreate, db: Session = Depends(get_db)):
+    patrimonio = db.query(models.PatrimonioDB).filter(models.PatrimonioDB.id == patrimonio_id).first()
+    if not patrimonio:
+        raise HTTPException(status_code=404, detail="Patrimônio não encontrado")
+    novo = models.ComponenteDB(patrimonio_id=patrimonio_id, **componente.model_dump())
+    db.add(novo)
+    db.commit()
+    db.refresh(novo)
+    return novo
+
+@app.put("/componentes/{componente_id}", response_model=schemas.ComponenteResponse)
+def atualizar_componente(componente_id: int, componente: schemas.ComponenteCreate, db: Session = Depends(get_db)):
+    comp = db.query(models.ComponenteDB).filter(models.ComponenteDB.id == componente_id).first()
+    if not comp:
+        raise HTTPException(status_code=404, detail="Componente não encontrado")
+    for key, value in componente.model_dump().items():
+        setattr(comp, key, value)
+    db.commit()
+    db.refresh(comp)
+    return comp
+
+@app.delete("/componentes/{componente_id}")
+def deletar_componente(componente_id: int, db: Session = Depends(get_db)):
+    comp = db.query(models.ComponenteDB).filter(models.ComponenteDB.id == componente_id).first()
+    if not comp:
+        raise HTTPException(status_code=404, detail="Componente não encontrado")
+    db.delete(comp)
+    db.commit()
+    return {"mensagem": f"Componente {componente_id} deletado"}
+
+
 @app.get("/exportar_pdf")
 def exportar_pdf(db: Session = Depends(get_db)):
-    items = db.query(models.PatrimonioDB).all()
+    items = (
+        db.query(models.PatrimonioDB)
+        .options(selectinload(models.PatrimonioDB.componentes))
+        .all()
+    )
     buffer = gerar_pdf_patrimonio(items)
 
     return StreamingResponse(

@@ -89,6 +89,24 @@ def gerar_pdf_patrimonio(items: list[models.PatrimonioDB]) -> io.BytesIO:
         textColor=colors.HexColor("#222222"),
     )
 
+    comp_nome_style = ParagraphStyle(
+        "CompNome",
+        parent=styles["Normal"],
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor("#374151"),
+        leftIndent=10,
+    )
+
+    comp_obs_style = ParagraphStyle(
+        "CompObs",
+        parent=styles["Normal"],
+        fontSize=7,
+        leading=9,
+        textColor=colors.HexColor("#6b7280"),
+        leftIndent=10,
+    )
+
     titulo = "Relatório de Patrimônio<br/><b>LAMIC - Laboratório de Análises Micotoxicológicas</b>"
     logo_lamic_path = _find_logo_path("logo_lamic.png")
     logo_ufsm_path = _find_logo_path("ufsm_png.png")
@@ -142,7 +160,8 @@ def gerar_pdf_patrimonio(items: list[models.PatrimonioDB]) -> io.BytesIO:
     for sala_nome in sorted(itens_por_sala.keys()):
         elements.append(Paragraph(f"<b>{sala_nome}</b>", sala_style))
 
-        data = [["Patr. LAMIC", "Patr. UFSM", "Descrição/Nome", "Qtd", "Valor Total (R$)"]]
+        data = [["Patr. LAMIC", "Patr. UFSM / Nº Série", "Descrição / Componente", "Qtd", "Valor (R$)"]]
+        comp_rows = []  # índices das linhas de componente (1-based dentro de data)
 
         total_valor = 0.0
         for item in itens_por_sala[sala_nome]:
@@ -159,38 +178,65 @@ def gerar_pdf_patrimonio(items: list[models.PatrimonioDB]) -> io.BytesIO:
             )
             total_valor += valor_item
 
+            componentes = getattr(item, "componentes", []) or []
+            for comp in componentes:
+                valor_comp = float(comp.valor or 0)
+                partes = [Paragraph(f"└ {comp.nome}", comp_nome_style)]
+                if comp.observacao:
+                    partes.append(Paragraph(comp.observacao, comp_obs_style))
+                comp_cell = partes[0] if len(partes) == 1 else partes
+                data.append(
+                    [
+                        "",
+                        comp.numero_serie or "—",
+                        comp_cell,
+                        str(comp.quantidade or 1),
+                        _formatar_valor_br(valor_comp) if valor_comp else "—",
+                    ]
+                )
+                comp_rows.append(len(data) - 1)
+
         data.append(["", "", "TOTAL SALA:", "", _formatar_valor_br(total_valor)])
+
+        style_cmds = [
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1a5490")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, 0), 9),
+            ("ALIGN", (0, 1), (1, -2), "CENTER"),
+            ("ALIGN", (2, 1), (2, -2), "LEFT"),
+            ("ALIGN", (3, 1), (3, -2), "CENTER"),
+            ("ALIGN", (4, 1), (4, -2), "RIGHT"),
+            ("VALIGN", (0, 1), (-1, -2), "MIDDLE"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 1), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 1), (-1, -1), 5),
+            ("GRID", (0, 0), (-1, -2), 0.3, colors.HexColor("#d1d5db")),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#f3f4f6")]),
+            ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f0f7")),
+            ("ALIGN", (2, -1), (2, -1), "RIGHT"),
+            ("ALIGN", (4, -1), (4, -1), "RIGHT"),
+        ]
+
+        # Estilo diferenciado para linhas de componente
+        for ri in comp_rows:
+            style_cmds += [
+                ("BACKGROUND", (0, ri), (-1, ri), colors.HexColor("#eef2f7")),
+                ("FONTSIZE", (0, ri), (-1, ri), 8),
+                ("TOPPADDING", (0, ri), (-1, ri), 3),
+                ("BOTTOMPADDING", (0, ri), (-1, ri), 3),
+                ("TEXTCOLOR", (0, ri), (1, ri), colors.HexColor("#6b7280")),
+                ("LINEABOVE", (0, ri), (-1, ri), 0.3, colors.HexColor("#cbd5e1")),
+            ]
 
         table = Table(
             data,
             colWidths=[2.8 * cm, 3.2 * cm, 9.0 * cm, 1.2 * cm, 2.5 * cm],
             repeatRows=1,
         )
-        table.setStyle(
-            TableStyle(
-                [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1a5490")),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, 0), 9),
-                    ("ALIGN", (0, 1), (1, -2), "CENTER"),
-                    ("ALIGN", (2, 1), (2, -2), "LEFT"),
-                    ("ALIGN", (3, 1), (3, -2), "CENTER"),
-                    ("ALIGN", (4, 1), (4, -2), "RIGHT"),
-                    ("VALIGN", (0, 1), (-1, -2), "MIDDLE"),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                    ("TOPPADDING", (0, 1), (-1, -1), 6),
-                    ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
-                    ("GRID", (0, 0), (-1, -2), 0.3, colors.HexColor("#d1d5db")),
-                    ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#f3f4f6")]),
-                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
-                    ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f0f7")),
-                    ("ALIGN", (2, -1), (2, -1), "RIGHT"),
-                    ("ALIGN", (4, -1), (4, -1), "RIGHT"),
-                ]
-            )
-        )
+        table.setStyle(TableStyle(style_cmds))
 
         elements.append(table)
         elements.append(Spacer(1, 0.35 * cm))

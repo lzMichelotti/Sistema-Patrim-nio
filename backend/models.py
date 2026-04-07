@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -26,6 +26,22 @@ class PatrimonioDB(Base):
     nome = Column(String(255), nullable=False)
     quantidade = Column(Integer, default=1)
     valor_total = Column(Float, nullable=True)
+    ativo = Column(Boolean, default=True)
     
     # Isso diz ao SQLAlchemy: "Este patrimônio pertence a uma sala"
     sala = relationship("SalaDB", back_populates="patrimonios")
+    componentes = relationship("ComponenteDB", back_populates="patrimonio", cascade="all, delete-orphan")
+
+
+class ComponenteDB(Base):
+    __tablename__ = "componentes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    patrimonio_id = Column(Integer, ForeignKey("patrimonios.id"), nullable=False)
+    nome = Column(String(255), nullable=False)
+    numero_serie = Column(String(100), nullable=True)
+    quantidade = Column(Integer, default=1)
+    valor = Column(Float, nullable=True)
+    observacao = Column(String(500), nullable=True)
+
+    patrimonio = relationship("PatrimonioDB", back_populates="componentes")
