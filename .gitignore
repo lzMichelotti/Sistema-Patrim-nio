@@ -8,6 +8,7 @@ __pycache__/
 
 # Banco local SQLite
 backend/data/
+*.db
 
 # Frontend build/deps
 frontend/node_modules/
