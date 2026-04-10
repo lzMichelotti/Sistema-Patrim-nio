@@ -259,6 +259,14 @@ function App() {
     return true;
   });
 
+  const ordenarPorLamic = (a, b) => {
+    const cA = a.numero_patrimonio_lamic || '';
+    const cB = b.numero_patrimonio_lamic || '';
+    if (cA && !cB) return -1;
+    if (!cA && cB) return 1;
+    return cA.localeCompare(cB, 'pt-BR', { numeric: true });
+  };
+
   const itensAgrupados = (() => {
     const grupos = {};
     for (const item of patrimoniosFiltrados) {
@@ -266,7 +274,9 @@ function App() {
       if (!grupos[nome]) grupos[nome] = [];
       grupos[nome].push(item);
     }
-    return Object.entries(grupos).sort(([a], [b]) => a.localeCompare(b, 'pt-BR'));
+    return Object.entries(grupos)
+      .sort(([a], [b]) => a.localeCompare(b, 'pt-BR'))
+      .map(([nome, itens]) => [nome, [...itens].sort(ordenarPorLamic)]);
   })();
 
   const graficoSrc = `${API_URL}/graficos/valor-por-sala?t=${graficoKey}`;
